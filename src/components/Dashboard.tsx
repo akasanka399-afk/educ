@@ -19,7 +19,8 @@ import {
   MessageCircle,
   Phone,
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  CreditCard,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -104,6 +105,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <span>Gestion Équipe & Accès</span>
               </button>
             )}
+
+            <button
+              onClick={() => onNavigateTab('id-cards')}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded-xl shadow-xs transition-colors"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>Cartes Scolaires & Badges</span>
+            </button>
 
             <button
               onClick={() => onNavigateTab('whatsapp')}

@@ -911,13 +911,20 @@ class StorageService {
     this.logAudit('STUDENT_ENROLLED', `Inscription de l'élève ${student.last_name} ${student.first_name} (${student.student_number})`);
   }
 
-  public updateStudent(student: Student): void {
+  public updateStudent(studentOrId: Student | string, updates?: Partial<Student>): Student | undefined {
     const students = this.getStudents();
-    const idx = students.findIndex((s) => s.id === student.id);
+    const id = typeof studentOrId === 'string' ? studentOrId : studentOrId.id;
+    const idx = students.findIndex((s) => s.id === id);
     if (idx !== -1) {
-      students[idx] = student;
+      if (typeof studentOrId === 'string' && updates) {
+        students[idx] = { ...students[idx], ...updates };
+      } else if (typeof studentOrId !== 'string') {
+        students[idx] = { ...students[idx], ...studentOrId };
+      }
       this.saveStudents(students);
+      return students[idx];
     }
+    return undefined;
   }
 
   // --- PAYMENTS & CAISSE ---

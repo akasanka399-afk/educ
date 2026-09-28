@@ -16,8 +16,10 @@ import {
   CheckCircle2,
   Users,
   Baby,
-  BookOpen
+  BookOpen,
+  CreditCard,
 } from 'lucide-react';
+import { StudentIdCardModal } from './StudentIdCardModal';
 
 interface StudentsListProps {
   currentUser: UserProfile;
@@ -37,6 +39,7 @@ export const StudentsList: React.FC<StudentsListProps> = ({ currentUser, onNavig
 
   // Modals
   const [activeStudentDetail, setActiveStudentDetail] = useState<Student | null>(null);
+  const [activeIdCardStudent, setActiveIdCardStudent] = useState<Student | null>(null);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
 
   const getClassName = (classId: string) => {
@@ -284,6 +287,15 @@ export const StudentsList: React.FC<StudentsListProps> = ({ currentUser, onNavig
                             <Eye className="w-4 h-4 text-gray-600" />
                           </button>
 
+                          {/* Carte Scolaire & Badge */}
+                          <button
+                            onClick={() => setActiveIdCardStudent(st)}
+                            className="p-1.5 rounded-lg border border-purple-200 hover:bg-purple-50 text-purple-700"
+                            title="Imprimer / Visualiser la carte scolaire"
+                          >
+                            <CreditCard className="w-4 h-4" />
+                          </button>
+
                           {/* Relance WhatsApp si impayé */}
                           {remaining > 0 && (
                             <button
@@ -316,6 +328,24 @@ export const StudentsList: React.FC<StudentsListProps> = ({ currentUser, onNavig
         <StudentDetailModal
           student={activeStudentDetail}
           onClose={() => setActiveStudentDetail(null)}
+          onOpenCard={(st) => {
+            setActiveStudentDetail(null);
+            setActiveIdCardStudent(st);
+          }}
+        />
+      )}
+
+      {/* Modal Carte Scolaire */}
+      {activeIdCardStudent && (
+        <StudentIdCardModal
+          student={activeIdCardStudent}
+          school={school}
+          schoolClass={classes.find((c) => c.id === activeIdCardStudent.class_id)}
+          onClose={() => setActiveIdCardStudent(null)}
+          onUpdatePhoto={(stId, photoUrl) => {
+            storage.updateStudent(stId, { photo_url: photoUrl });
+            setStudents(storage.getStudents());
+          }}
         />
       )}
 

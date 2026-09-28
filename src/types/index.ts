@@ -67,6 +67,7 @@ export interface Student {
   birth_place: string;
   gender: 'M' | 'F';
   photo_url?: string;
+  blood_group?: string; // ex: O+, A+, B+, AB+
   health_notes?: string;
   allergies?: string;
   

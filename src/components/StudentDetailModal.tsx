@@ -14,19 +14,22 @@ import {
   Phone,
   Share2,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  CreditCard,
 } from 'lucide-react';
 
 interface StudentDetailModalProps {
   student: Student;
   onClose: () => void;
   onOpenPayment?: (student: Student) => void;
+  onOpenCard?: (student: Student) => void;
 }
 
 export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
   student,
   onClose,
   onOpenPayment,
+  onOpenCard,
 }) => {
   const school = storage.getSchoolConfig();
   const classes = storage.getClasses();
@@ -249,13 +252,24 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
         </div>
 
         {/* Pied de modal */}
-        <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-semibold rounded-xl"
-          >
-            Fermer
-          </button>
+        <div className="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between gap-2">
+          {onOpenCard && (
+            <button
+              onClick={() => onOpenCard(student)}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-colors"
+            >
+              <CreditCard className="w-4 h-4" />
+              <span>Imprimer Carte Scolaire & Badge</span>
+            </button>
+          )}
+          <div className="flex items-center gap-2 ml-auto">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-semibold rounded-xl"
+            >
+              Fermer
+            </button>
+          </div>
         </div>
       </div>
     </div>

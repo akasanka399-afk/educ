@@ -23,6 +23,7 @@ import { SuperAdminPinDialog } from './components/SuperAdminPinDialog';
 import { SuperAdminModal } from './components/SuperAdminModal';
 import { SchoolLoginScreen } from './components/SchoolLoginScreen';
 import { SchoolStaffManagement } from './components/SchoolStaffManagement';
+import { StudentCardsManager } from './components/StudentCardsManager';
 import { syncService } from './services/syncService';
 import { AlertTriangle, Shield } from 'lucide-react';
 
@@ -183,6 +184,14 @@ export default function App() {
             onNavigateToCash={(student) => {
               setCurrentTab('cash');
             }}
+          />
+        )}
+
+        {currentTab === 'id-cards' && (
+          <StudentCardsManager
+            school={school}
+            currentUser={currentUser}
+            classes={classes}
           />
         )}
 

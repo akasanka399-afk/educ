@@ -9,7 +9,8 @@ import {
   BookOpen,
   MessageSquare,
   History,
-  ShieldCheck
+  ShieldCheck,
+  CreditCard,
 } from 'lucide-react';
 
 export type TabType =
@@ -17,6 +18,7 @@ export type TabType =
   | 'cash'
   | 'journal'
   | 'students'
+  | 'id-cards'
   | 'kindergarten'
   | 'primary'
   | 'whatsapp'
@@ -69,6 +71,13 @@ export const Navigation: React.FC<NavigationProps> = ({
       label: 'Élèves & Inscriptions',
       icon: GraduationCap,
       visible: true,
+    },
+    {
+      id: 'id-cards' as TabType,
+      label: 'Cartes Scolaires',
+      icon: CreditCard,
+      visible: true,
+      badge: 'QR Code',
     },
     {
       id: 'kindergarten' as TabType,

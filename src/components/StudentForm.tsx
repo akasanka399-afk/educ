@@ -38,7 +38,9 @@ export const StudentForm: React.FC<StudentFormProps> = ({ onClose, onStudentSave
   const [parentProfession, setParentProfession] = useState('');
   const [parentAddress, setParentAddress] = useState('');
 
-  // Santé
+  // Santé & Carte
+  const [bloodGroup, setBloodGroup] = useState('O+');
+  const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
   const [allergies, setAllergies] = useState('');
   const [healthNotes, setHealthNotes] = useState('');
 
@@ -106,6 +108,8 @@ export const StudentForm: React.FC<StudentFormProps> = ({ onClose, onStudentSave
       birth_date: birthDate,
       birth_place: birthPlace.trim(),
       gender,
+      photo_url: photoUrl,
+      blood_group: bloodGroup,
       class_id: classId,
       cycle,
       academic_year_id: school.academic_year,
@@ -281,8 +285,50 @@ export const StudentForm: React.FC<StudentFormProps> = ({ onClose, onStudentSave
                 </div>
               </div>
 
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Groupe Sanguin (pour la Carte Scolaire)
+                </label>
+                <select
+                  value={bloodGroup}
+                  onChange={(e) => setBloodGroup(e.target.value)}
+                  className="w-full p-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white font-bold text-gray-800"
+                >
+                  <option value="O+">O+ (Le plus fréquent)</option>
+                  <option value="A+">A+</option>
+                  <option value="B+">B+</option>
+                  <option value="AB+">AB+</option>
+                  <option value="O-">O-</option>
+                  <option value="A-">A-</option>
+                  <option value="B-">B-</option>
+                  <option value="AB-">AB-</option>
+                  <option value="Inconnu">Inconnu / Non testé</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Photo d'identité (Badge / Carte)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        setPhotoUrl(ev.target?.result as string);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="w-full text-xs text-gray-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                />
+              </div>
+
               {cycle === 'primary' && (
-                <div className="flex items-center pt-5">
+                <div className="flex items-center pt-2 sm:col-span-2">
                   <label className="flex items-center gap-2 cursor-pointer font-bold text-purple-800">
                     <input
                       type="checkbox"
