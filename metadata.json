@@ -1,0 +1,6 @@
+{
+  "name": "EduNova Primaire",
+  "description": "Logiciel SaaS de gestion scolaire maternelle et primaire pour le Burkina Faso (Offline-First, Reçus thermiques, WhatsApp, Multi-tenant).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

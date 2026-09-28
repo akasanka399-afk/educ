@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/* Styles d'impression spécialisés : 80 mm thermique continu & A4 paysage */
+@media print {
+  body {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 11pt !important;
+  }
+
+  header, nav, button, .no-print {
+    display: none !important;
+  }
+
+  #printable-receipt {
+    width: 80mm !important;
+    max-width: 80mm !important;
+    margin: 0 auto !important;
+    padding: 4mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    font-family: monospace !important;
+  }
+
+  #official-report-card {
+    width: 100% !important;
+    border: 2px solid black !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+  }
+}

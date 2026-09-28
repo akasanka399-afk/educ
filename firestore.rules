@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Permet la synchronisation des données de l'application multi-établissements EduNova
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
