@@ -22,6 +22,7 @@ import {
   Check,
 } from 'lucide-react';
 import { syncService, SyncStatus } from '../services/syncService';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   currentUser: UserProfile;
@@ -201,6 +202,9 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'Hors ligne'}
             </span>
           </button>
+
+          {/* Bouton d'Installation PWA */}
+          <PWAInstallButton />
 
           {/* Bouton Matériel Imprimante Thermique */}
           <button

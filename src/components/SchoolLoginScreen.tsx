@@ -14,6 +14,7 @@ import {
   UserCheck,
   AlertTriangle,
 } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface SchoolLoginScreenProps {
   onSchoolUnlocked: (school: SchoolConfig, user: UserProfile) => void;
@@ -133,6 +134,10 @@ export const SchoolLoginScreen: React.FC<SchoolLoginScreenProps> = ({
               Gestion Maternelle & Primaire • Burkina Faso
             </p>
           </div>
+        </div>
+
+        <div>
+          <PWAInstallButton />
         </div>
       </header>
 
