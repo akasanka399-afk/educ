@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Student, SchoolConfig, SchoolClass, UserProfile } from '../types';
 import { storage } from '../services/storage';
 import { StudentIdCard } from './StudentIdCard';
 import { StudentIdCardModal } from './StudentIdCardModal';
+import { useSyncData } from '../hooks/useSyncData';
 import {
   CreditCard,
   Printer,
@@ -30,6 +31,13 @@ export const StudentCardsManager: React.FC<StudentCardsManagerProps> = ({
   classes,
 }) => {
   const [students, setStudents] = useState<Student[]>(storage.getStudents());
+
+  useSyncData(
+    useCallback(() => {
+      setStudents(storage.getStudents());
+    }, [])
+  );
+
   const [selectedClassId, setSelectedClassId] = useState<string>('ALL');
   const [selectedCycle, setSelectedCycle] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');

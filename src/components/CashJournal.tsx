@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Payment, UserProfile, SchoolConfig } from '../types';
 import { storage } from '../services/storage';
 import { formatFCFA, formatDateTimeFR } from '../utils/formatters';
 import { ReceiptModal } from './ReceiptModal';
+import { useSyncData } from '../hooks/useSyncData';
 import {
   Receipt,
   FileSpreadsheet,
@@ -26,6 +27,13 @@ interface CashJournalProps {
 
 export const CashJournal: React.FC<CashJournalProps> = ({ currentUser, school }) => {
   const [payments, setPayments] = useState<Payment[]>(storage.getPayments());
+
+  useSyncData(
+    useCallback(() => {
+      setPayments(storage.getPayments());
+    }, [])
+  );
+
   const [selectedReceipt, setSelectedReceipt] = useState<Payment | null>(null);
   const [filterMethod, setFilterMethod] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');

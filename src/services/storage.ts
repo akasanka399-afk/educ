@@ -13,7 +13,7 @@ import {
   WhatsAppMessageLog,
 } from '../types';
 
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   ALL_SCHOOLS: 'edunova_all_schools',
   ALL_USERS: 'edunova_all_users',
   ACTIVE_SCHOOL_CODE: 'edunova_active_school_code',
@@ -571,14 +571,35 @@ const DEFAULT_PAYMENTS: Payment[] = [
 ];
 
 class StorageService {
+  private syncListeners: ((key: string) => void)[] = [];
+
   constructor() {
     this.initDefaults();
   }
 
-  private notifyStorageChange(): void {
+  public onDataChange(listener: (key: string) => void): () => void {
+    this.syncListeners.push(listener);
+    return () => {
+      this.syncListeners = this.syncListeners.filter((l) => l !== listener);
+    };
+  }
+
+  public notifyDataChange(key: string): void {
     if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('edunova_data_updated', { detail: { key } }));
       window.dispatchEvent(new Event('storage'));
     }
+    this.syncListeners.forEach((listener) => {
+      try {
+        listener(key);
+      } catch (err) {
+        console.error('Storage sync listener callback error:', err);
+      }
+    });
+  }
+
+  private notifyStorageChange(): void {
+    this.notifyDataChange('storage_generic');
   }
 
   private initDefaults(): void {
@@ -633,7 +654,7 @@ class StorageService {
 
   public saveAllSchools(schools: SchoolConfig[]): void {
     localStorage.setItem(STORAGE_KEYS.ALL_SCHOOLS, JSON.stringify(schools));
-    this.notifyStorageChange();
+    this.notifyDataChange(STORAGE_KEYS.ALL_SCHOOLS);
   }
 
   public getSchoolByCode(code: string): SchoolConfig | undefined {
@@ -768,7 +789,7 @@ class StorageService {
 
   public saveAllUsers(users: UserProfile[]): void {
     localStorage.setItem(STORAGE_KEYS.ALL_USERS, JSON.stringify(users));
-    this.notifyStorageChange();
+    this.notifyDataChange(STORAGE_KEYS.ALL_USERS);
   }
 
   public getUsersBySchool(schoolId: string): UserProfile[] {
@@ -820,6 +841,7 @@ class StorageService {
 
   public setCurrentUser(user: UserProfile): void {
     localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+    this.notifyDataChange(STORAGE_KEYS.CURRENT_USER);
   }
 
   // --- SECURITY / VERIFICATIONS ---
@@ -882,7 +904,7 @@ class StorageService {
 
   public saveClasses(classes: SchoolClass[]): void {
     localStorage.setItem(STORAGE_KEYS.CLASSES, JSON.stringify(classes));
-    this.notifyStorageChange();
+    this.notifyDataChange(STORAGE_KEYS.CLASSES);
   }
 
   public getClassById(id: string): SchoolClass | undefined {
@@ -897,7 +919,7 @@ class StorageService {
 
   public saveStudents(students: Student[]): void {
     localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
-    this.notifyStorageChange();
+    this.notifyDataChange(STORAGE_KEYS.STUDENTS);
   }
 
   public getStudentById(id: string): Student | undefined {
@@ -927,6 +949,16 @@ class StorageService {
     return undefined;
   }
 
+  public deleteStudent(studentId: string): void {
+    let students = this.getStudents();
+    const st = students.find((s) => s.id === studentId);
+    students = students.filter((s) => s.id !== studentId);
+    this.saveStudents(students);
+    if (st) {
+      this.logAudit('STUDENT_DELETED', `Suppression de l'élève ${st.last_name} ${st.first_name} (${st.student_number})`);
+    }
+  }
+
   // --- PAYMENTS & CAISSE ---
   public getPayments(): Payment[] {
     const raw = localStorage.getItem(STORAGE_KEYS.PAYMENTS);
@@ -935,7 +967,7 @@ class StorageService {
 
   public savePayments(payments: Payment[]): void {
     localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify(payments));
-    this.notifyStorageChange();
+    this.notifyDataChange(STORAGE_KEYS.PAYMENTS);
   }
 
   public addPayment(payment: Payment): void {
@@ -997,6 +1029,7 @@ class StorageService {
 
   public saveAttendances(records: AttendanceRecord[]): void {
     localStorage.setItem(STORAGE_KEYS.ATTENDANCES, JSON.stringify(records));
+    this.notifyDataChange(STORAGE_KEYS.ATTENDANCES);
   }
 
   public getAttendanceByClassAndDate(classId: string, date: string): AttendanceRecord | undefined {
@@ -1022,6 +1055,7 @@ class StorageService {
 
   public saveAssessments(assessments: Assessment[]): void {
     localStorage.setItem(STORAGE_KEYS.ASSESSMENTS, JSON.stringify(assessments));
+    this.notifyDataChange(STORAGE_KEYS.ASSESSMENTS);
   }
 
   public addOrUpdateAssessment(assessment: Assessment): void {
@@ -1036,10 +1070,20 @@ class StorageService {
     this.logAudit('ASSESSMENT_SAVED', `Enregistrement notes ${assessment.title} (${assessment.period})`);
   }
 
+  public deleteAssessment(assessmentId: string): void {
+    const list = this.getAssessments().filter((a) => a.id !== assessmentId);
+    this.saveAssessments(list);
+  }
+
   // --- MATERNELLE (BILANS & JOURNAL) ---
   public getKindergartenReports(): KindergartenReport[] {
     const raw = localStorage.getItem(STORAGE_KEYS.KINDERGARTEN_REPORTS);
     return raw ? JSON.parse(raw) : [];
+  }
+
+  public saveKindergartenReports(reports: KindergartenReport[]): void {
+    localStorage.setItem(STORAGE_KEYS.KINDERGARTEN_REPORTS, JSON.stringify(reports));
+    this.notifyDataChange(STORAGE_KEYS.KINDERGARTEN_REPORTS);
   }
 
   public saveKindergartenReport(report: KindergartenReport): void {
@@ -1050,12 +1094,17 @@ class StorageService {
     } else {
       list.push(report);
     }
-    localStorage.setItem(STORAGE_KEYS.KINDERGARTEN_REPORTS, JSON.stringify(list));
+    this.saveKindergartenReports(list);
   }
 
   public getKindergartenDailyLogs(): KindergartenDailyLog[] {
     const raw = localStorage.getItem(STORAGE_KEYS.KINDERGARTEN_LOGS);
     return raw ? JSON.parse(raw) : [];
+  }
+
+  public saveKindergartenDailyLogs(logs: KindergartenDailyLog[]): void {
+    localStorage.setItem(STORAGE_KEYS.KINDERGARTEN_LOGS, JSON.stringify(logs));
+    this.notifyDataChange(STORAGE_KEYS.KINDERGARTEN_LOGS);
   }
 
   public saveKindergartenDailyLog(log: KindergartenDailyLog): void {
@@ -1066,7 +1115,7 @@ class StorageService {
     } else {
       list.push(log);
     }
-    localStorage.setItem(STORAGE_KEYS.KINDERGARTEN_LOGS, JSON.stringify(list));
+    this.saveKindergartenDailyLogs(list);
   }
 
   // --- AUDIT LOGS ---
@@ -1089,6 +1138,7 @@ class StorageService {
     list.unshift(newLog);
     if (list.length > 200) list.pop();
     localStorage.setItem(STORAGE_KEYS.AUDIT_LOGS, JSON.stringify(list));
+    this.notifyDataChange(STORAGE_KEYS.AUDIT_LOGS);
   }
 
   // --- WHATSAPP LOGS ---
@@ -1106,6 +1156,7 @@ class StorageService {
     const list = this.getWhatsAppLogs();
     list.unshift(newEntry);
     localStorage.setItem(STORAGE_KEYS.WHATSAPP_LOGS, JSON.stringify(list));
+    this.notifyDataChange(STORAGE_KEYS.WHATSAPP_LOGS);
   }
 }
 

@@ -1,45 +1,50 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
   getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
   doc,
   setDoc,
+  getDoc,
+  getDocs,
+  collection,
   onSnapshot,
-  enableIndexedDbPersistence,
+  Firestore,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Use the database specified in config
-export const db = getFirestore(
-  app,
-  firebaseConfig.firestoreDatabaseId || '(default)'
-);
-
-// Try to enable offline persistence if possible in browser environment
-if (typeof window !== 'undefined') {
-  try {
-    enableIndexedDbPersistence(db).catch((err) => {
-      if (err.code === 'failed-precondition') {
-        // Multiple tabs open, persistence can only be enabled in one tab at a time.
-        console.warn('Firebase persistence failed: multiple tabs open');
-      } else if (err.code === 'unimplemented') {
-        // The current browser does not support all of the features required to enable persistence
-        console.warn('Firebase persistence not supported');
-      }
-    });
-  } catch {
-    // Ignore already enabled or SSR errors
-  }
+// Initialiser Firestore avec persistance multi-onglets moderne
+let firestoreInstance: Firestore;
+try {
+  firestoreInstance = initializeFirestore(
+    app,
+    {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    },
+    firebaseConfig.firestoreDatabaseId || '(default)'
+  );
+} catch {
+  firestoreInstance = getFirestore(app, firebaseConfig.firestoreDatabaseId || '(default)');
 }
 
-// Collections root for schools and cloud sync
+export const db = firestoreInstance;
+
+// Nom du document maître et collection de synchronisation
 export const CLOUD_SYNC_DOC_ID = 'edunova_primary_master_data';
+export const CLOUD_COLLECTION_NAME = 'edunova_data';
+
+export type SyncStatus = 'offline' | 'connecting' | 'syncing' | 'synced' | 'error';
 
 export interface CloudSyncState {
-  status: 'offline' | 'connecting' | 'online' | 'error';
+  status: SyncStatus;
   lastSyncedAt: string | null;
-  pendingChangesCount: number;
+  deviceId: string;
+  isRealtimeActive: boolean;
 }
 
-export { doc, setDoc, onSnapshot };
+export { doc, setDoc, getDoc, getDocs, collection, onSnapshot };

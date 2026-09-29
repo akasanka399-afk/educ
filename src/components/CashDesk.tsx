@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Student, Payment, PaymentMethod, SchoolConfig, UserProfile } from '../types';
+import React, { useState, useCallback } from 'react';
+import { Student, Payment, PaymentMethod, SchoolConfig, UserProfile, SchoolClass } from '../types';
 import { storage } from '../services/storage';
 import { formatFCFA } from '../utils/formatters';
 import { numberToWordsFcfa } from '../utils/numberToWords';
 import { ReceiptModal } from './ReceiptModal';
+import { useSyncData } from '../hooks/useSyncData';
 import {
   Search,
   Wallet,
@@ -38,8 +39,20 @@ export const CashDesk: React.FC<CashDeskProps> = ({ currentUser, school }) => {
   // Reçu généré pour le modal
   const [currentReceipt, setCurrentReceipt] = useState<Payment | null>(null);
 
-  const students = storage.getStudents();
-  const classes = storage.getClasses();
+  const [students, setStudents] = useState<Student[]>(storage.getStudents());
+  const [classes, setClasses] = useState<SchoolClass[]>(storage.getClasses());
+
+  useSyncData(
+    useCallback(() => {
+      const freshStudents = storage.getStudents();
+      setStudents(freshStudents);
+      setClasses(storage.getClasses());
+      setSelectedStudent((prev) => {
+        if (!prev) return null;
+        return freshStudents.find((s) => s.id === prev.id) || prev;
+      });
+    }, [])
+  );
 
   // Filtrage des élèves pour recherche rapide
   const filteredStudents = searchTerm.trim()

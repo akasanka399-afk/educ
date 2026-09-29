@@ -34,6 +34,8 @@ export default function App() {
   const [currentTab, setCurrentTab] = useState<TabType>('dashboard');
   const [isLoggedIntoSchool, setIsLoggedIntoSchool] = useState<boolean>(true);
 
+  const [dataRevision, setDataRevision] = useState<number>(0);
+
   // Initialisation de la synchronisation Firebase Cloud
   useEffect(() => {
     syncService.init();
@@ -42,11 +44,14 @@ export default function App() {
       setSchool(storage.getSchoolConfig());
       setClasses(storage.getClasses());
       setCurrentUser(storage.getCurrentUser());
+      setDataRevision((prev) => prev + 1);
     };
 
     window.addEventListener('edunova_cloud_synced', handleCloudUpdate);
+    window.addEventListener('edunova_data_updated', handleCloudUpdate);
     return () => {
       window.removeEventListener('edunova_cloud_synced', handleCloudUpdate);
+      window.removeEventListener('edunova_data_updated', handleCloudUpdate);
     };
   }, []);
 
@@ -163,6 +168,7 @@ export default function App() {
       <main className="flex-1 pb-12">
         {currentTab === 'dashboard' && (
           <Dashboard
+            key={`dashboard-${dataRevision}`}
             school={school}
             currentUser={currentUser}
             onNavigateTab={setCurrentTab}
@@ -171,15 +177,24 @@ export default function App() {
         )}
 
         {currentTab === 'cash' && (
-          <CashDesk currentUser={currentUser} school={school} />
+          <CashDesk
+            key={`cash-${dataRevision}`}
+            currentUser={currentUser}
+            school={school}
+          />
         )}
 
         {currentTab === 'journal' && (
-          <CashJournal currentUser={currentUser} school={school} />
+          <CashJournal
+            key={`journal-${dataRevision}`}
+            currentUser={currentUser}
+            school={school}
+          />
         )}
 
         {currentTab === 'students' && (
           <StudentsList
+            key={`students-${dataRevision}`}
             currentUser={currentUser}
             onNavigateToCash={(student) => {
               setCurrentTab('cash');
@@ -189,6 +204,7 @@ export default function App() {
 
         {currentTab === 'id-cards' && (
           <StudentCardsManager
+            key={`id-cards-${dataRevision}`}
             school={school}
             currentUser={currentUser}
             classes={classes}
@@ -196,15 +212,24 @@ export default function App() {
         )}
 
         {currentTab === 'kindergarten' && school.active_modules.kindergarten && (
-          <KindergartenModule currentUser={currentUser} classes={classes} />
+          <KindergartenModule
+            key={`kindergarten-${dataRevision}`}
+            currentUser={currentUser}
+            classes={classes}
+          />
         )}
 
         {currentTab === 'primary' && school.active_modules.primary && (
-          <PrimaryModule currentUser={currentUser} classes={classes} />
+          <PrimaryModule
+            key={`primary-${dataRevision}`}
+            currentUser={currentUser}
+            classes={classes}
+          />
         )}
 
         {currentTab === 'staff' && (
           <SchoolStaffManagement
+            key={`staff-${dataRevision}`}
             school={school}
             currentUser={currentUser}
             classes={classes}
@@ -212,7 +237,11 @@ export default function App() {
         )}
 
         {currentTab === 'whatsapp' && (
-          <WhatsAppCenter school={school} classes={classes} />
+          <WhatsAppCenter
+            key={`whatsapp-${dataRevision}`}
+            school={school}
+            classes={classes}
+          />
         )}
       </main>
 

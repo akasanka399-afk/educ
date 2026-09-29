@@ -168,39 +168,50 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Côté Droit : Statut Réseau, Imprimante, Profil & Rôles */}
         <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-          {/* Badge Synchronisation Firebase Cloud */}
+          {/* Badge Synchronisation Firebase Cloud & Écoute Temps Réel */}
           <button
-            onClick={() => syncService.pushLocalToFirestore()}
+            onClick={async () => {
+              await syncService.pushLocalToFirestore();
+              await syncService.pullRemoteFromFirestore();
+            }}
             disabled={cloudStatus === 'syncing'}
-            className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
               cloudStatus === 'synced'
-                ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 shadow-2xs'
                 : cloudStatus === 'syncing'
-                ? 'bg-blue-50 text-blue-800 border-blue-200 animate-pulse'
-                : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+                ? 'bg-blue-50 text-blue-800 border-blue-300 animate-pulse'
+                : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
             }`}
             title={
               cloudStatus === 'synced'
-                ? `Synchronisé avec Firebase Cloud (${lastSyncTime || 'à l\'instant'}). Cliquez pour forcer la synchronisation.`
+                ? `Synchronisation en temps réel active (${lastSyncTime || 'à l\'instant'}). Cliquez pour forcer une réactualisation complète.`
                 : cloudStatus === 'syncing'
-                ? 'Synchronisation Firebase en cours...'
-                : 'Données locales en cache. Cliquez pour synchroniser avec Firebase.'
+                ? 'Synchronisation cloud en cours...'
+                : 'Connexion interrompue. Mode hors-ligne actif.'
             }
           >
             {cloudStatus === 'syncing' ? (
               <RefreshCw className="w-3.5 h-3.5 text-blue-600 animate-spin" />
             ) : cloudStatus === 'synced' ? (
-              <Cloud className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+              </span>
             ) : (
               <WifiOff className="w-3.5 h-3.5 text-amber-600" />
             )}
-            <span className="font-semibold">
+            <span className="font-semibold text-[11px] sm:text-xs">
               {cloudStatus === 'syncing'
                 ? 'Synchro...'
                 : cloudStatus === 'synced'
-                ? 'Cloud Sync OK'
+                ? 'Temps réel actif'
                 : 'Hors ligne'}
             </span>
+            {lastSyncTime && cloudStatus === 'synced' && (
+              <span className="hidden lg:inline text-[10px] text-emerald-600 font-mono">
+                {lastSyncTime}
+              </span>
+            )}
           </button>
 
           {/* Bouton d'Installation PWA */}

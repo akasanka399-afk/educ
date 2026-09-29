@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Student, SchoolClass, UserProfile } from '../types';
 import { storage } from '../services/storage';
 import { formatFCFA, displayPhoneFR } from '../utils/formatters';
@@ -21,15 +21,25 @@ import {
 } from 'lucide-react';
 import { StudentIdCardModal } from './StudentIdCardModal';
 
+import { useSyncData } from '../hooks/useSyncData';
+
 interface StudentsListProps {
   currentUser: UserProfile;
   onNavigateToCash?: (student: Student) => void;
 }
 
 export const StudentsList: React.FC<StudentsListProps> = ({ currentUser, onNavigateToCash }) => {
-  const school = storage.getSchoolConfig();
-  const classes = storage.getClasses();
+  const [school, setSchool] = useState(storage.getSchoolConfig());
+  const [classes, setClasses] = useState(storage.getClasses());
   const [students, setStudents] = useState<Student[]>(storage.getStudents());
+
+  useSyncData(
+    useCallback(() => {
+      setStudents(storage.getStudents());
+      setClasses(storage.getClasses());
+      setSchool(storage.getSchoolConfig());
+    }, [])
+  );
 
   // Filtres
   const [selectedCycle, setSelectedCycle] = useState<string>('ALL');

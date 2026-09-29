@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { SchoolConfig, UserProfile, Student, Payment, SchoolClass } from '../types';
 import { storage } from '../services/storage';
 import { formatFCFA, formatDateFR } from '../utils/formatters';
+import { useSyncData } from '../hooks/useSyncData';
 import {
   Users,
   Wallet,
@@ -36,9 +37,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onNavigateTab,
   onOpenReceipt,
 }) => {
-  const students = storage.getStudents();
-  const payments = storage.getPayments().filter((p) => !p.is_cancelled);
-  const classes = storage.getClasses();
+  const [students, setStudents] = useState<Student[]>(storage.getStudents());
+  const [payments, setPayments] = useState<Payment[]>(storage.getPayments().filter((p) => !p.is_cancelled));
+  const [classes, setClasses] = useState<SchoolClass[]>(storage.getClasses());
+
+  useSyncData(
+    useCallback(() => {
+      setStudents(storage.getStudents());
+      setPayments(storage.getPayments().filter((p) => !p.is_cancelled));
+      setClasses(storage.getClasses());
+    }, [])
+  );
 
   // Chiffres clés
   const totalStudents = students.length;
