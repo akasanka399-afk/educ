@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import { Student, SchoolClass, UserProfile } from '../types';
+import { Student, SchoolClass, UserProfile, Payment } from '../types';
 import { storage } from '../services/storage';
 import { formatFCFA, displayPhoneFR } from '../utils/formatters';
 import { whatsappService } from '../services/whatsapp';
 import { StudentDetailModal } from './StudentDetailModal';
 import { StudentForm } from './StudentForm';
+import { ReceiptModal } from './ReceiptModal';
 import {
   GraduationCap,
   UserPlus,
@@ -51,6 +52,7 @@ export const StudentsList: React.FC<StudentsListProps> = ({ currentUser, onNavig
   const [activeStudentDetail, setActiveStudentDetail] = useState<Student | null>(null);
   const [activeIdCardStudent, setActiveIdCardStudent] = useState<Student | null>(null);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
+  const [activeRegistrationReceipt, setActiveRegistrationReceipt] = useState<Payment | null>(null);
 
   const getClassName = (classId: string) => {
     return classes.find((c) => c.id === classId)?.name || 'Classe';
@@ -363,7 +365,20 @@ export const StudentsList: React.FC<StudentsListProps> = ({ currentUser, onNavig
       {showAddForm && (
         <StudentForm
           onClose={() => setShowAddForm(false)}
-          onStudentSaved={() => setStudents(storage.getStudents())}
+          onStudentSaved={(payment) => {
+            setStudents(storage.getStudents());
+            if (payment) {
+              setActiveRegistrationReceipt(payment);
+            }
+          }}
+        />
+      )}
+
+      {/* Modal Reçu de Caisse Immédiat (Frais d'inscription) */}
+      {activeRegistrationReceipt && (
+        <ReceiptModal
+          payment={activeRegistrationReceipt}
+          onClose={() => setActiveRegistrationReceipt(null)}
         />
       )}
     </div>

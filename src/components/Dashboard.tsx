@@ -63,8 +63,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const totalUnpaid = Math.max(0, totalFeesDue - totalCollected);
   const recoveryRate = totalFeesDue > 0 ? Math.round((totalCollected / totalFeesDue) * 100) : 0;
 
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const todayPayments = payments.filter((p) => p.created_at.slice(0, 10) === todayStr);
+  const isPaymentToday = (p: Payment) => {
+    if (!p.created_at) return false;
+    const paymentDate = new Date(p.created_at);
+    const now = new Date();
+    const isSameLocalDate =
+      paymentDate.getFullYear() === now.getFullYear() &&
+      paymentDate.getMonth() === now.getMonth() &&
+      paymentDate.getDate() === now.getDate();
+    const isSameIsoDate = p.created_at.slice(0, 10) === now.toISOString().slice(0, 10);
+    return isSameLocalDate || isSameIsoDate;
+  };
+
+  const todayPayments = payments.filter(isPaymentToday);
   const todayTotal = todayPayments.reduce((sum, p) => sum + p.amount_fcfa, 0);
 
   // Dernières transactions

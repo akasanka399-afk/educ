@@ -1,9 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
   getFirestore,
-  initializeFirestore,
-  persistentLocalCache,
-  persistentMultipleTabManager,
   doc,
   setDoc,
   getDoc,
@@ -16,23 +13,11 @@ import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// Initialiser Firestore avec persistance multi-onglets moderne
-let firestoreInstance: Firestore;
-try {
-  firestoreInstance = initializeFirestore(
-    app,
-    {
-      localCache: persistentLocalCache({
-        tabManager: persistentMultipleTabManager(),
-      }),
-    },
-    firebaseConfig.firestoreDatabaseId || '(default)'
-  );
-} catch {
-  firestoreInstance = getFirestore(app, firebaseConfig.firestoreDatabaseId || '(default)');
-}
-
-export const db = firestoreInstance;
+// Utiliser getFirestore direct pour une compatibilité mobile totale (iOS Safari, Android Chrome, WebView, PWA)
+export const db: Firestore = getFirestore(
+  app,
+  firebaseConfig.firestoreDatabaseId || '(default)'
+);
 
 // Nom du document maître et collection de synchronisation
 export const CLOUD_SYNC_DOC_ID = 'edunova_primary_master_data';

@@ -262,6 +262,18 @@ class FirebaseSyncService {
       this.setStatus('synced');
       this.lastSyncTime = new Date().toLocaleTimeString('fr-FR');
       this.notifyListeners();
+
+      // Notifier immédiatement les composants React dès la fin de l'hydratation Firestore
+      window.dispatchEvent(
+        new CustomEvent('edunova_cloud_synced', {
+          detail: { time: this.lastSyncTime, bootstrap: true },
+        })
+      );
+      window.dispatchEvent(
+        new CustomEvent('edunova_data_updated', {
+          detail: { remote: true, bootstrap: true },
+        })
+      );
     } catch (err) {
       console.warn('Erreur initial bootstrap Firestore:', err);
       this.setStatus('error');
@@ -313,6 +325,15 @@ class FirebaseSyncService {
     const docId = KEY_TO_DOC_MAP[targetKey];
     if (!docId) return;
 
+    // Les paiements et élèves sont prioritaires : envoi immédiat sans délai pour éviter toute perte
+    if (docId === 'payments' || docId === 'students') {
+      const existing = this.debounceTimers.get(docId);
+      if (existing) clearTimeout(existing);
+      this.debounceTimers.delete(docId);
+      this.pushDocToFirestore(docId, targetKey);
+      return;
+    }
+
     const existingTimer = this.debounceTimers.get(docId);
     if (existingTimer) {
       clearTimeout(existingTimer);
@@ -320,13 +341,10 @@ class FirebaseSyncService {
 
     this.setStatus('syncing');
 
-    // Les paiements et élèves sont prioritaires (délai plus court : 150ms)
-    const delay = docId === 'payments' || docId === 'students' ? 150 : 350;
-
     const timer = setTimeout(() => {
       this.debounceTimers.delete(docId);
       this.pushDocToFirestore(docId, targetKey);
-    }, delay);
+    }, 250);
 
     this.debounceTimers.set(docId, timer);
   }
